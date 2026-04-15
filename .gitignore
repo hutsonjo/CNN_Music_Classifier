@@ -21,6 +21,3 @@ dist/
 
 # Local project notes and drafts
 local/
-
-# Large local datasets and audio assets
-training_data/
