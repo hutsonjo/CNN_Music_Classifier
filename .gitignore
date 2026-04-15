@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# Build / packaging artifacts
+build/
+dist/
+*.egg-info/
+.ipynb_checkpoints/
+
+# Local project notes and drafts
+local/
+
+# Large local datasets and audio assets
+training_data/
