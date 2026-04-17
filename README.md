@@ -134,6 +134,29 @@ This checks only for fatal errors (syntax errors and undefined names). The
 `.flake8` config file in the repo root ensures `.venv` and build artifacts are
 excluded automatically. Clean output with exit code 0 means no issues found.
 
+## Pipeline data flow
+
+```
+Raw .au files
+    │
+    ▼  Stage 1 — Waveform preprocessing  (PreprocessConfig)
+    │  load_audio()          resample to 22 050 Hz, mono float32
+    │  segment_waveform()    chop into 3 s clips → AudioRecord
+    │                        { path, label, sr, segments: (n_segs, n_samples) }
+    │
+    ▼  Stage 2 — Spectrogram generation  (SpectrogramConfig)
+    │  segments_to_mel_spectrograms()   FFT → mel filter bank → dB
+    │  normalize_spectrograms()         scale to [0, 1]
+    │                        → SpectrogramRecord
+    │                           { path, label, sr, spectrograms: (n_segs, 128, 130) }
+    │
+    ├─ stratified_split()    file-level 80/10/10 train/val/test
+    │
+    └─ save_dataset()        .npz archive { X: float32, y: int64, label_names }
+           │
+           └─ load_dataset() → (X, y, label_names) ready for model.fit()
+```
+
 ## Preprocessing smoke run
 
 Processes the GTZAN dataset end-to-end (load → resample → segment) and prints a summary:
@@ -179,14 +202,22 @@ python scripts/run_preprocess_smoke.py `
 src/
   music_classifier/
     preprocessing/
-      config.py      # PreprocessConfig dataclass
-      io.py          # File discovery, label parsing, librosa loading
-      segment.py     # Fixed-length waveform segmentation
-      pipeline.py    # Orchestrates load → resample → segment
+      config.py        # PreprocessConfig + SpectrogramConfig dataclasses
+      io.py            # File discovery, label parsing, librosa loading
+      segment.py       # Fixed-length waveform segmentation
+      spectrogram.py   # Mel-spectrogram generation (FFT → mel → dB)
+      normalize.py     # Per-spectrogram normalization (minmax / standardize)
+      pipeline.py      # Orchestrates both stages; AudioRecord + SpectrogramRecord
+      splitter.py      # Stratified file-level train/val/test split
+      storage.py       # save_dataset / load_dataset (.npz format)
 tests/
   test_io.py
   test_segment.py
+  test_spectrogram.py
+  test_splitter.py
+  test_storage.py
   test_pipeline_smoke.py
+  test_gtzan_integration.py  # integration tests against real GTZAN data
 scripts/
   run_preprocess_smoke.py
 training_data/
