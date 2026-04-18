@@ -14,9 +14,11 @@ from typing import TypedDict
 
 import numpy as np
 
-from .config import PreprocessConfig
+from .config import PreprocessConfig, SpectrogramConfig
 from .io import iter_audio_files, load_audio, parse_genre_label
+from .normalize import normalize_spectrograms
 from .segment import segment_waveform
+from .spectrogram import segments_to_mel_spectrograms
 
 
 class AudioRecord(TypedDict):
@@ -144,3 +146,108 @@ def preprocess_dataset(
     """
     for audio_path in iter_audio_files(Path(dataset_root)):
         yield preprocess_file(audio_path, config)
+
+
+class SpectrogramRecord(TypedDict):
+    """Output contract for a single fully-preprocessed audio file.
+
+    Extends ``AudioRecord`` by replacing raw waveform segments with normalised
+    mel-spectrograms that are ready to pass directly into a CNN model.
+
+    Fields
+    ------
+    path:
+        Absolute path to the source audio file.  Kept for traceability.
+    label:
+        Genre name (e.g. ``"blues"``).  This is the training target — the
+        ground-truth class the model should learn to predict.
+    sr:
+        Sample rate of the source waveform in Hz.
+    spectrograms:
+        3-D float32 array of shape ``(n_segments, n_mels, n_frames)``.
+        Each slice ``spectrograms[i]`` is one normalised mel-spectrogram
+        representing a fixed-length clip of the original audio.  Values
+        are in the range [0, 1] for ``"minmax"`` normalization or
+        approximately N(0, 1) for ``"standardize"``.
+    """
+
+    path: Path
+    label: str
+    sr: int
+    spectrograms: np.ndarray  # (n_segments, n_mels, n_frames)
+
+
+def build_spectrogram_record(
+    audio_record: AudioRecord,
+    config: SpectrogramConfig,
+) -> SpectrogramRecord:
+    """Convert a single ``AudioRecord`` into a ``SpectrogramRecord``.
+
+    Applies mel-spectrogram generation followed by normalization to the
+    waveform segments already stored in *audio_record*.
+
+    Parameters
+    ----------
+    audio_record:
+        Output of ``preprocess_file`` — contains raw waveform segments.
+    config:
+        Spectrogram hyperparameters (FFT size, mel bands, normalization
+        strategy).  See ``SpectrogramConfig`` for full documentation.
+
+    Returns
+    -------
+    SpectrogramRecord
+        Same ``path``, ``label``, and ``sr`` as *audio_record*, with
+        ``spectrograms`` replacing ``segments``.
+    """
+    raw_specs = segments_to_mel_spectrograms(
+        audio_record["segments"],
+        audio_record["sr"],
+        n_mels=config.n_mels,
+        n_fft=config.n_fft,
+        hop_length=config.hop_length,
+        fmax=config.fmax,
+    )
+    norm_specs = normalize_spectrograms(raw_specs, strategy=config.normalize)
+    return SpectrogramRecord(
+        path=audio_record["path"],
+        label=audio_record["label"],
+        sr=audio_record["sr"],
+        spectrograms=norm_specs,
+    )
+
+
+def build_spectrogram_dataset(
+    dataset_root: Path,
+    preprocess_config: PreprocessConfig,
+    spectrogram_config: SpectrogramConfig,
+) -> Iterator[SpectrogramRecord]:
+    """Yield a ``SpectrogramRecord`` for every audio file under *dataset_root*.
+
+    This is the top-level orchestrator for the full two-stage pipeline:
+
+    1. **Stage 1** — ``preprocess_dataset``: load, resample, and segment each
+       audio file into fixed-length waveform clips (``AudioRecord``).
+    2. **Stage 2** — ``build_spectrogram_record``: convert each clip's
+       waveform into a mel-spectrogram and normalise it (``SpectrogramRecord``).
+
+    Like ``preprocess_dataset``, this is a *lazy generator* — it processes
+    one file at a time so memory usage stays constant regardless of dataset
+    size.  Files are yielded in deterministic sorted order.
+
+    Parameters
+    ----------
+    dataset_root:
+        Root directory of the GTZAN-style dataset.
+    preprocess_config:
+        Controls audio loading, resampling, and segmentation.
+    spectrogram_config:
+        Controls mel-spectrogram generation and normalization.
+
+    Yields
+    ------
+    SpectrogramRecord
+        One record per audio file, in sorted (genre, filename) order.
+    """
+    for audio_record in preprocess_dataset(Path(dataset_root), preprocess_config):
+        yield build_spectrogram_record(audio_record, spectrogram_config)

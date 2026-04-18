@@ -21,9 +21,15 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from music_classifier.preprocessing.config import PreprocessConfig
+from music_classifier.preprocessing.config import PreprocessConfig, SpectrogramConfig
 from music_classifier.preprocessing.io import iter_audio_files, load_audio
-from music_classifier.preprocessing.pipeline import preprocess_dataset, preprocess_file
+from music_classifier.preprocessing.pipeline import (
+    build_spectrogram_dataset,
+    build_spectrogram_record,
+    preprocess_dataset,
+    preprocess_file,
+)
+from music_classifier.preprocessing.storage import load_dataset, save_dataset
 
 GTZAN_ROOT = Path(__file__).parents[1] / "training_data" / "gtzan_dataset"
 
@@ -170,3 +176,70 @@ def test_segment_counts_balanced_across_genres() -> None:
         assert 990 <= count <= 1000, (
             f"Genre '{genre}' has unexpected segment count: {count}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Spectrogram generation (Stage 2) on real .au files
+# ---------------------------------------------------------------------------
+
+_PREPROCESS_CFG = PreprocessConfig(target_sr=22050, segment_seconds=3.0)
+_SPECTROGRAM_CFG = SpectrogramConfig(n_mels=128, n_fft=2048, hop_length=512)
+
+
+def test_spectrogram_shape_on_real_file() -> None:
+    """Spectrogram output shape must be (n_segs, 128, ~130) on a real .au file."""
+    first = next(iter_audio_files(GTZAN_ROOT))
+    audio_record = preprocess_file(first, _PREPROCESS_CFG)
+    spec_record = build_spectrogram_record(audio_record, _SPECTROGRAM_CFG)
+
+    specs = spec_record["spectrograms"]
+    assert specs.ndim == 3
+    assert specs.shape[1] == 128  # n_mels
+    # For 3 s at 22050 Hz with hop_length=512: floor(66150/512)+1 = 130
+    assert 128 <= specs.shape[2] <= 132, f"Unexpected n_frames: {specs.shape[2]}"
+    assert specs.shape[0] > 0
+
+
+def test_spectrogram_dtype_on_real_file() -> None:
+    """Normalised spectrograms must be float32."""
+    first = next(iter_audio_files(GTZAN_ROOT))
+    audio_record = preprocess_file(first, _PREPROCESS_CFG)
+    spec_record = build_spectrogram_record(audio_record, _SPECTROGRAM_CFG)
+    assert spec_record["spectrograms"].dtype == np.float32
+
+
+def test_spectrogram_values_in_0_1_on_real_file() -> None:
+    """minmax normalization must keep all values in [0, 1]."""
+    first = next(iter_audio_files(GTZAN_ROOT))
+    audio_record = preprocess_file(first, _PREPROCESS_CFG)
+    spec_record = build_spectrogram_record(audio_record, _SPECTROGRAM_CFG)
+    specs = spec_record["spectrograms"]
+    assert float(specs.min()) >= 0.0
+    assert float(specs.max()) <= 1.0
+
+
+def test_full_pipeline_produces_saveable_dataset(tmp_path: Path) -> None:
+    """Run the full two-stage pipeline on 5 files, save to .npz, reload and check."""
+    cfg_p = PreprocessConfig(target_sr=22050, segment_seconds=3.0)
+    cfg_s = SpectrogramConfig(n_mels=128, n_fft=2048, hop_length=512)
+
+    records = []
+    for i, spec_record in enumerate(build_spectrogram_dataset(GTZAN_ROOT, cfg_p, cfg_s)):
+        records.append(spec_record)
+        if i >= 4:  # process 5 files
+            break
+
+    assert len(records) == 5
+
+    out = tmp_path / "test_dataset.npz"
+    save_dataset(records, out)
+    assert out.exists()
+
+    X, y, label_names = load_dataset(out)
+
+    total_segs = sum(r["spectrograms"].shape[0] for r in records)
+    assert X.shape == (total_segs, 128, records[0]["spectrograms"].shape[2])
+    assert y.shape == (total_segs,)
+    assert len(label_names) > 0
+    assert X.dtype == np.float32
+    assert y.dtype == np.int64
