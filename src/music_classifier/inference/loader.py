@@ -10,8 +10,9 @@ with preprocessed spectrogram inputs.
 from __future__ import annotations
 
 from pathlib import Path
-from tensorflow.keras.models import load_model
-from tensorflow.keras import Model
+from typing import cast
+from keras.models import load_model
+from keras import Model
 
 def load_genre_model() -> Model:
     """Load the trained genre classification model from disk.
@@ -25,8 +26,18 @@ def load_genre_model() -> Model:
     ------
     FileNotFoundError
         If the model file does not exist at the expected location.
+    RuntimeError
+        If the model fails to load.
     """
-    path = Path("model/model.keras")
+    path = Path(__file__).resolve().parents[2] / "model" / "model.keras"
     if not path.exists():
-        raise FileNotFoundError(f"Model file not found: {path}")
-    return load_model(path)
+        raise NotImplementedError(
+            f"Model artifact not available yet: expected at {path}"
+        )
+        # raise FileNotFoundError(f"Model file not found: {path}")
+    
+    try:
+        return cast(Model, load_model(path, compile=False))
+    except Exception as exc:
+        raise RuntimeError(f"Failed to load model from {path}: {exc}") from exc
+    

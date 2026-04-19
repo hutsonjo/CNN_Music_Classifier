@@ -17,8 +17,7 @@ and label mapping will be added in future iterations.
 from __future__ import annotations
 
 from pathlib import Path
-
-from tensorflow.keras import Model
+from keras import Model
 
 from music_classifier.preprocessing import (
     PreprocessConfig,
@@ -59,11 +58,11 @@ def build_batch(file_path: str | Path) -> SpectrogramRecord:
 def classify_file(
     model: Model,
     file_path: str | Path,
-):
+) -> list[tuple[str, float]]:
     """Run model inference on a single audio file.
 
     The audio file is first converted into spectrogram segments, then
-    passed through the model to obtain prediction probabilities.
+    passed through the model to obtain formatted prediction probabilities.
 
     Parameters
     ----------
@@ -77,16 +76,8 @@ def classify_file(
     np.ndarray
         Array of shape (n_segments, n_classes) containing prediction
         probabilities for each segment.
-
-    Raises
-    ------
-    ValueError
-        If no predictions are generated.
     """
     spectrogram_record = build_batch(file_path)
     predictions = predict_batch(model, spectrogram_record['spectrograms'])
-
-    if predictions.size == 0:
-        raise ValueError("No predictions were provided for aggregation.")
     
     return predictions

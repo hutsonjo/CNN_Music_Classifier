@@ -9,49 +9,71 @@ the required channel dimension and enforcing proper memory layout.
 
 from __future__ import annotations
 
-from typing import Literal
 import numpy as np
-from tensorflow.keras import Model
+
+from typing import Literal
+from keras import Model
+
+from music_classifier.inference.labels import GENRE_LABELS
 
 
-def prepare_batch(spectrograms: np.ndarray) -> np.ndarray:
-    """Convert spectrograms into model-ready batch format.
+def format_prediction(predictions: np.ndarray) -> list[tuple[str, float]]:
+    """Aggregate and format model predictions into ranked genre scores.
 
-    Adds a channel dimension and ensures the array is contiguous
-    and stored as float32 for efficient computation.
+    This function combines segment-level predictions into a single
+    probability distribution by computing the mean across segments,
+    then pairs each probability with its corresponding genre label.
+    The results are sorted in descending order of probability, and
+    scores are rounded to three decimal places for readability.
 
     Parameters
     ----------
-    spectrograms:
-        Array of shape (n_segments, n_mels, n_frames).
+    predictions:
+        Array of shape (n_segments, n_classes), where each row contains
+        class probabilities for one audio segment.
 
     Returns
     -------
-    np.ndarray
-        Array of shape (n_segments, n_mels, n_frames, 1).
+    list[tuple[str, float]]
+        List of (genre, probability) pairs sorted from highest to lowest
+        probability. Probabilities are rounded to three decimal places.
 
     Raises
     ------
     ValueError
-        If the input array does not have 3 dimensions.
+        If the predictions array is empty.
     """
-    if spectrograms.ndim != 3:
-        raise ValueError(
-            f"Expected spectrograms with shape (n_segments, n_mels, n_frames), got {spectrograms.shape}."
-        )
+    if predictions.size == 0:
+        raise ValueError("No predictions were provided for aggregation.")
+    
+    aggregate = np.mean(predictions, axis=0)
+    results = sorted(
+        zip(GENRE_LABELS, aggregate, strict=False),
+        key=lambda pair: pair[1],
+        reverse=True
+    )
 
-    batch = spectrograms[..., np.newaxis]
-
-    return np.ascontiguousarray(batch, dtype=np.float32)
+    return [(label, round(score, 3)) for label, score in results]
 
 
 def predict_batch(
     model: Model,
     spectrograms: np.ndarray,
     *,
-    verbose: Literal[0] = 0
-) -> np.ndarray:
-    """Run model prediction on a batch of spectrograms.
+    verbose: Literal["auto", 0, 1, 2] = 0
+):
+    """Run model inference and return formatted genre predictions.
+
+    This function prepares spectrogram data for model input, performs
+    batch prediction, and formats the results into ranked genre scores.
+
+    Steps
+    -----
+    1. Validate spectrogram shape.
+    2. Add a channel dimension for Conv2D input.
+    3. Run model prediction on all segments.
+    4. Aggregate segment-level predictions into a single probability vector.
+    5. Pair probabilities with genre labels and sort them in descending order.
 
     Parameters
     ----------
@@ -64,11 +86,24 @@ def predict_batch(
 
     Returns
     -------
-    np.ndarray
-        Prediction array of shape (n_segments, n_classes), where each
-        row contains class probabilities for one segment.
-    """
-    batch = prepare_batch(spectrograms)
-    predictions = model.predict(batch, verbose=verbose)
+    list[tuple[str, float]]
+        List of (genre, probability) pairs sorted from highest to lowest
+        probability. Probabilities are rounded for readability.
 
-    return np.asarray(predictions, dtype=np.float32)
+    Raises
+    ------
+    ValueError
+        If the input array does not have 3 dimensions.
+    """
+    if spectrograms.ndim != 3:
+        raise ValueError(
+            f"Expected spectrograms with shape "
+            f"(n_segments, n_mels, n_frames), got {spectrograms.shape}."
+        )
+
+    batch = spectrograms[..., np.newaxis]
+    predictions = model.predict(batch, verbose=verbose) # type: ignore
+    results = format_prediction(predictions)
+
+    return results
+
