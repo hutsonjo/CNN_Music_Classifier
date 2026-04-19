@@ -41,4 +41,3 @@ def load_genre_model() -> Model:
         return cast(Model, load_model(path, compile=False))
     except Exception as exc:
         raise RuntimeError(f"Failed to load model from {path}: {exc}") from exc
-    

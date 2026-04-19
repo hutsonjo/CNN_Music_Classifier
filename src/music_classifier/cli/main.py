@@ -1,18 +1,18 @@
 """Command-line interface for music genre classification.
 
 This module provides a simple CLI entry point for running inference on a
-single audio file. It parses user input, loads the trained model, and
-delegates prediction to the inference pipeline.
+single audio file. It handles user input, delegates model loading and
+prediction to the inference package, and prints formatted results.
 
 Flow
 ----
-1. Parse CLI arguments (audio file path).
-2. Load the trained Keras model.
+1. Parse command-line arguments (audio file path).
+2. Load the trained model.
 3. Run inference on the provided file.
-4. Print prediction results to the console.
+4. Display ranked genre predictions.
 
-Error handling is performed at this level so that core inference logic
-can raise exceptions cleanly without handling user interaction concerns.
+This module is intentionally thin: it does not implement inference logic.
+All heavy processing is delegated to the ``music_classifier.inference`` package.
 """
 
 from __future__ import annotations
@@ -35,7 +35,6 @@ def valid_audio_file(path_str: str) -> Path:
     ------
     ArgumentTypeError
         If path does not exist or isn't a file.
-
     """
     path = Path(path_str)
 
@@ -88,4 +87,3 @@ def main() -> None:
     except Exception as exc:
         print(f"Error: {exc}")
         raise SystemExit(1) from exc
-    

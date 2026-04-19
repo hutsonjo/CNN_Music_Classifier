@@ -12,6 +12,7 @@ from music_classifier.cli.main import main, valid_audio_file
 # valid_audio_file
 # ---------------------------------------------------------------------------
 
+
 def test_valid_audio_file_returns_path_for_existing_file(tmp_path: Path) -> None:
     audio_file = tmp_path / "test.wav"
     audio_file.write_text("dummy audio content")
@@ -34,6 +35,7 @@ def test_valid_audio_file_raises_for_directory(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------
+
 
 def test_main_success_prints_predictions(mocker, capsys) -> None:
     fake_args = argparse.Namespace(audio_file=Path("song.wav"))
@@ -112,4 +114,3 @@ def test_main_exits_with_code_1_when_classification_fails(mocker, capsys) -> Non
 
     captured = capsys.readouterr()
     assert "Error: bad audio" in captured.out
-    
