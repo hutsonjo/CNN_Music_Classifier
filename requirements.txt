@@ -7,3 +7,6 @@ soundfile>=0.12
 pytest>=7.0
 pytest-cov>=4.0
 flake8>=7.0
+
+# Visualizations
+matplotlib>=3.10
