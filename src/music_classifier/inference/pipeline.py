@@ -1,17 +1,18 @@
 """Inference pipeline: preprocessing → model prediction.
 
 This module orchestrates the full inference workflow for a single audio
-file. It connects the preprocessing pipeline to the trained model.
+file. It connects the preprocessing pipeline to the trained model and
+produces formatted genre predictions.
 
 Steps
 -----
 1. Load and preprocess the audio file into waveform segments.
 2. Convert segments into normalized mel-spectrograms.
 3. Prepare spectrograms for model input.
-4. Run prediction on each segment.
+4. Run model inference and aggregate predictions into ranked results.
 
-The current implementation returns raw prediction outputs. Aggregation
-and label mapping will be added in future iterations.
+This module provides a thin orchestration layer between preprocessing
+and prediction utilities.
 """
 
 from __future__ import annotations
@@ -32,7 +33,7 @@ from music_classifier.inference.predict import predict_batch
 def build_batch(file_path: str | Path) -> SpectrogramRecord:
     """Generate spectrogram input from an audio file.
 
-    This function runs the full preprocessing pipeline:
+    Runs the full preprocessing pipeline:
     load → segment → mel-spectrogram → normalize.
 
     Parameters
@@ -61,8 +62,8 @@ def classify_file(
 ) -> list[tuple[str, float]]:
     """Run model inference on a single audio file.
 
-    The audio file is first converted into spectrogram segments, then
-    passed through the model to obtain formatted prediction probabilities.
+    The audio file is converted into spectrogram segments and passed
+    through the model to produce aggregated, ranked genre predictions.
 
     Parameters
     ----------
@@ -73,9 +74,9 @@ def classify_file(
 
     Returns
     -------
-    np.ndarray
-        Array of shape (n_segments, n_classes) containing prediction
-        probabilities for each segment.
+    list[tuple[str, float]]
+        Ranked list of (genre, probability) pairs, sorted from highest
+        to lowest probability.
     """
     spectrogram_record = build_batch(file_path)
     predictions = predict_batch(model, spectrogram_record['spectrograms'])

@@ -4,7 +4,8 @@ This module is responsible for loading a trained Keras model from disk.
 The model file must exist and contain both architecture and weights.
 
 The returned model is ready for inference and can be used directly
-with preprocessed spectrogram inputs.
+with preprocessed spectrogram inputs. The model is loaded with ``compile=False``
+to avoid requiring training-time configuration during inference.
 """
 
 from __future__ import annotations
@@ -25,6 +26,8 @@ def load_genre_model() -> Model:
 
     Raises
     ------
+    NotImplementedError
+        If the model artifact is not yet available.
     FileNotFoundError
         If the model file does not exist at the expected location.
     RuntimeError

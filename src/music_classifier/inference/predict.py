@@ -23,25 +23,26 @@ def format_prediction(predictions: np.ndarray) -> list[tuple[str, float]]:
     This function combines segment-level predictions into a single
     probability distribution by computing the mean across segments,
     then pairs each probability with its corresponding genre label.
-    The results are sorted in descending order of probability, and
-    scores are rounded to three decimal places for readability.
+    Results are sorted in descending order of probability and rounded
+    to three decimal places for readability.
 
     Parameters
     ----------
     predictions:
-        Array of shape (n_segments, n_classes), where each row contains
-        class probabilities for one audio segment.
+        2-D array of shape (n_segments, n_classes), where each row contains
+        class probabilities for one audio segment. ``n_classes`` must match
+        the length of ``GENRE_LABELS``.
 
     Returns
     -------
     list[tuple[str, float]]
-        List of (genre, probability) pairs sorted from highest to lowest
-        probability. Probabilities are rounded to three decimal places.
+        Ranked list of (genre, probability) pairs sorted from highest to
+        lowest probability.
 
     Raises
     ------
     ValueError
-        If the predictions array is empty.
+        If the predictions array is empty or not 2-D.
     """
     if predictions.size == 0:
         raise ValueError("No predictions were provided for aggregation.")
@@ -70,10 +71,10 @@ def predict_batch(
     Steps
     -----
     1. Validate spectrogram shape.
-    2. Add a channel dimension for Conv2D input.
+    2. Add a channel dimension for Conv2D input
+    (n_segments, n_mels, n_frames) → (n_segments, n_mels, n_frames, 1).
     3. Run model prediction on all segments.
-    4. Aggregate segment-level predictions into a single probability vector.
-    5. Pair probabilities with genre labels and sort them in descending order.
+    4. Aggregate and format predictions via ``format_prediction``.
 
     Parameters
     ----------
@@ -87,8 +88,8 @@ def predict_batch(
     Returns
     -------
     list[tuple[str, float]]
-        List of (genre, probability) pairs sorted from highest to lowest
-        probability. Probabilities are rounded for readability.
+        Ranked list of (genre, probability) pairs sorted from highest to
+        lowest probability.
 
     Raises
     ------
