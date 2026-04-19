@@ -21,3 +21,6 @@ dist/
 
 # Local project notes and drafts
 local/
+
+# Editor / IDE settings
+.vscode/
