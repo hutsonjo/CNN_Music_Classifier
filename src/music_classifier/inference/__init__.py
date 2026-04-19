@@ -42,7 +42,7 @@ classify_file(model, file_path) -> list[tuple[str, float]]
     End-to-end inference for a single audio file.
 """
 
-from.labels import GENRE_LABELS
+from .labels import GENRE_LABELS
 from .loader import load_genre_model
 from .pipeline import build_batch, classify_file
 from .predict import format_prediction, predict_batch
