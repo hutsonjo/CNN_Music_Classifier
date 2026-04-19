@@ -1,12 +1,13 @@
+""""""
+
 from __future__ import annotations
 
 import argparse
 from pathlib import Path
 
-from inference import load_genre_model
-from preprocessing import PreprocessConfig, SpectrogramConfig
+from music_classifier.inference import load_genre_model, classify_file
 
-def build_parser() -> argparse.ArgumentParser:
+def build_parser() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="GenreClassifier",
         description="Predict the genre of an audio file.",
@@ -16,23 +17,16 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         help="Path to the audio file."
     )
-    parser.add_argument(
-        "--top-k",
-        type=int,
-        default=3,
-        help="Number of top predictions to display.",
-    )
-    return parser
+    return parser.parse_args()
 
 def main() -> None:
-    parser = build_parser()
-    args = parser.parse_args()
-
-    preprocess_config = PreprocessConfig()
-    spectrogram_config = SpectrogramConfig()
+    args = build_parser()
+    audio_file = args.audio_file.resolve()
 
     try:
         model = load_genre_model()
+        results = classify_file(model, audio_file)
+        print(results)
 
     except Exception as exc:
         print(f"Error: {exc}")
