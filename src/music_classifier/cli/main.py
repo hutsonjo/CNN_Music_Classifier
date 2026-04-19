@@ -80,7 +80,10 @@ def main() -> None:
     try:
         model = load_genre_model()
         results = classify_file(model, audio_file)
-        print(results)
+        print("\nPredictions:")
+        for label, score in results:
+            print(f"{label:10} {score:.3f}")
+        SystemExit(0)
 
     except Exception as exc:
         print(f"Error: {exc}")

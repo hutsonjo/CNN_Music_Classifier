@@ -106,4 +106,3 @@ def predict_batch(
     results = format_prediction(predictions)
 
     return results
-

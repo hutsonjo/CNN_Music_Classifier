@@ -14,6 +14,7 @@ from typing import cast
 from keras.models import load_model
 from keras import Model
 
+
 def load_genre_model() -> Model:
     """Load the trained genre classification model from disk.
 
