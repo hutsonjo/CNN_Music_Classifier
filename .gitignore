@@ -21,3 +21,6 @@ dist/
 
 # Local project notes and drafts
 local/
+
+# NPZ file
+*.npz 
