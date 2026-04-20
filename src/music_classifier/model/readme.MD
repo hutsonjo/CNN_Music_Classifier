@@ -17,6 +17,7 @@ The model consists of three convolutional layers with max pooling and dropout ap
 Spectrograms are single channel becuase audio data is recorded only as amplitude of frequency, therefore final input shape is (130, 128, 1)
 
 ### Mockup 
+
 ![example model](imgs/nn.svg)
 
 ---
@@ -39,3 +40,6 @@ Use predict method on models to get array of length 10 with softmax probabilitie
 prediction = model.predict(mel_spectrogram_batch)  # prediction.shape = (batch_size, num_of_genres = 10)
 ```
 
+## Hyperparameters
+
+To come later in model tuning....
