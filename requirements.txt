@@ -7,6 +7,7 @@ soundfile>=0.12
 pytest>=7.0
 pytest-cov>=4.0
 flake8>=7.0
+<<<<<<< HEAD
 
 # Visualizations
 matplotlib>=3.10
@@ -14,3 +15,5 @@ matplotlib>=3.10
 # Model 
 tensorflow>=2.21.0
 keras>=3.14.0
+=======
+>>>>>>> 01db574567012984af155bcb630bb2df849973a3
