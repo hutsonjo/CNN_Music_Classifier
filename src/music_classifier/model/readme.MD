@@ -16,30 +16,26 @@ The model consists of three convolutional layers with max pooling and dropout ap
 
 Spectrograms are single channel becuase audio data is recorded only as amplitude of frequency, therefore final input shape is (130, 128, 1)
 
-### Mockup (Example Architecture **CHANGE WHEN ACTUAL MODEL IS CREATED**)
+### Mockup 
 ![example model](imgs/nn.svg)
 
 ---
 
-### Hyperparaters
+## Accessing Model 
 
-Insert best hyper parapeters here
+Model versions are found in the models directory with their version number. To access use Keras.load_model
 
-**Convolutional** 
-- Filter Number
-- Kernel Size
-- Stride 
-- Padding 
+```python
+import keras
 
-**Pooling**
-- Window Size
+model = keras.models.load_model("*/model/models/V*")
+```
 
-**Training**
-- Learning Rate
-- Batch Size
-- Epochs
-- Activation Functions
-- Dropout Rate
-- Number of Hidden/Fully Connected Layers
+## Interfacing with model
 
+Use predict method on models to get array of length 10 with softmax probabilities of genres. This works with any batch size. The predict method will give shape of (batch_size, num_of_genres) if batch_size greater than 1. The mel spectrograms must be shape (130, 128) with all the values normalized using min-man (0 to 1).
+
+```python
+prediction = model.predict(mel_spectrogram_batch)  # prediction.shape = (batch_size, num_of_genres = 10)
+```
 
