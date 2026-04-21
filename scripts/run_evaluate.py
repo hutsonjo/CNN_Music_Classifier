@@ -94,7 +94,9 @@ def _ensure_channel_dim(X):
 
 
 def _verify_normalization(X) -> None:
-    """Warn if the input is not in [0, 1] — the team pipeline produces [0, 1]."""
+    """
+    Warn if the input is not in [0, 1] — the team pipeline produces [0, 1].
+    """
     x_min, x_max = float(X.min()), float(X.max())
     if x_min < -0.01 or x_max > 1.01:
         print(
@@ -175,7 +177,6 @@ def main() -> int:
             file=sys.stderr,
         )
         return 1
-
 
     # Resolve paths and tags
     model_path = args.model_path.resolve()

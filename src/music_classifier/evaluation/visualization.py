@@ -19,8 +19,6 @@ import seaborn as sns
 
 PathLike = Union[str, Path, None]
 
-
-
 # Consistent style defaults
 _STYLE_DEFAULTS = {
     "figure.facecolor": "white",
