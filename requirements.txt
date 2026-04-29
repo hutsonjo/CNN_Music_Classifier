@@ -2,15 +2,15 @@
 librosa>=0.10
 numpy>=1.24
 soundfile>=0.12
+keras>=3.0
+tensorflow>=2.15
 
 # Dev / testing
 pytest>=7.0
 pytest-cov>=4.0
-flake8>=7.0
 
 # Visualizations
 matplotlib>=3.10
 
-# Model 
-tensorflow>=2.21.0
-keras>=3.14.0
+pytest-mock>=3.14
+flake8>=7.0

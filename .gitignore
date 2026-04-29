@@ -24,3 +24,6 @@ local/
 
 # NPZ file
 *.npz 
+
+# Editor / IDE settings
+.vscode/
