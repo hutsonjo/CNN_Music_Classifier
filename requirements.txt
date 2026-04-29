@@ -14,4 +14,3 @@ matplotlib>=3.10
 # Model 
 tensorflow>=2.21.0
 keras>=3.14.0
-
