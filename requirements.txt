@@ -8,5 +8,9 @@ tensorflow>=2.15
 # Dev / testing
 pytest>=7.0
 pytest-cov>=4.0
+
+# Visualizations
+matplotlib>=3.10
+
 pytest-mock>=3.14
 flake8>=7.0
