@@ -118,7 +118,7 @@ def _split_dataset_for_eval(dataset_path: Path, seed: int):
     import numpy as np
 
     from music_classifier.preprocessing.splitter import stratified_split
-    from smusic_classifier.preprocessing.storage import load_dataset
+    from music_classifier.preprocessing.storage import load_dataset
 
     print(f"Loading full dataset: {dataset_path}")
     X, y, label_names = load_dataset(dataset_path)
