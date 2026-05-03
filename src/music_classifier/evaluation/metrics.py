@@ -30,7 +30,7 @@ def per_class_accuracy(
     """Returns per-genre accuracy dict to spot which genres model confuses."""
     cm = confusion_matrix(y_true, y_pred)
     row_sums = cm.sum(axis=1)
-    if np.any(row_sums=0):
+    if np.any(row_sums == 0):
         missing = [genre_labels[i] for i, s in enumerate(row_sums) if s == 0]
         print(f"Warning: no test samples for genres: {missing}")
     
