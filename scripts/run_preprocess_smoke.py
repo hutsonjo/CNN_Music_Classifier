@@ -70,7 +70,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
 
-    # Lazy import so the script itself is importable without the package installed.
+    # Lazy import so script is importable without the package installed.
     try:
         from music_classifier.preprocessing.config import PreprocessConfig
         from music_classifier.preprocessing.pipeline import preprocess_dataset
