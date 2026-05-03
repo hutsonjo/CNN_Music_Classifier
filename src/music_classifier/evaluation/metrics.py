@@ -29,9 +29,19 @@ def per_class_accuracy(
 ) -> dict[str, float]:
     """Returns per-genre accuracy dict to spot which genres model confuses."""
     cm = confusion_matrix(y_true, y_pred)
+    row_sums = cm.sum(axis=1)
+    if np.any(row_sums=0):
+        missing = [genre_labels[i] for i, s in enumerate(row_sums) if s == 0]
+        print(f"Warning: no test samples for genres: {missing}")
+    
+    diagonal = np.divide(
+        cm.diagonal(),
+        row_sums,
+        out=np.zeros_like(row_sums, dtype=float),
+        where=row_sums != 0,
+    )
     diagonal = cm.diagonal() / cm.sum(axis=1)
-    return {label: round(float(acc), 4) for label, acc in zip(genre_labels, diagonal)}
-
+    return dict(zip(genre_labels, diagonal))
 
 def evaluate_predictions(
     y_true: np.ndarray,
