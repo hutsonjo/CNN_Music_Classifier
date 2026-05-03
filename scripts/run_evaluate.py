@@ -117,8 +117,8 @@ def _split_dataset_for_eval(dataset_path: Path, seed: int):
     """
     import numpy as np
 
-    from src.music_classifier.preprocessing.splitter import stratified_split
-    from src.music_classifier.preprocessing.storage import load_dataset
+    from music_classifier.preprocessing.splitter import stratified_split
+    from smusic_classifier.preprocessing.storage import load_dataset
 
     print(f"Loading full dataset: {dataset_path}")
     X, y, label_names = load_dataset(dataset_path)
@@ -159,7 +159,7 @@ def main() -> int:
     try:
         import tensorflow as tf
 
-        from src.music_classifier.evaluation import (
+        from music_classifier.evaluation import (
             ExperimentLogger,
             evaluate_predictions,
             plot_confusion_matrix,
@@ -167,7 +167,7 @@ def main() -> int:
             plot_top_k_predictions,
             plot_training_history,
         )
-        from src.music_classifier.preprocessing.storage import load_dataset
+        from music_classifier.preprocessing.storage import load_dataset
     except ImportError as exc:
         print(
             f"[ERROR] Cannot import required packages: {exc}\n"

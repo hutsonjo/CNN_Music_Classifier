@@ -7,7 +7,7 @@ pipeline output ``(n_segments, 128, 130)`` so the evaluation framework
 can be validated independently of model training progress.
 
 Run:
-    pytest tests/test_evaluation_smoke.py
+    pytest tests/test_evaluation_smoke.py -v
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from pathlib import Path
 import numpy as np
 
 
-from src.music_classifier.evaluation import (
+from music_classifier.evaluation import (
     ExperimentLogger,
     evaluate_predictions,
     per_class_accuracy,
@@ -30,7 +30,7 @@ from src.music_classifier.evaluation import (
     top_k_accuracy,
 )
 
-# Match the GTZAN label set used by the preprocessing pipeline.
+
 LABEL_NAMES = [
     "blues", "classical", "country", "disco", "hiphop",
     "jazz", "metal", "pop", "reggae", "rock",
