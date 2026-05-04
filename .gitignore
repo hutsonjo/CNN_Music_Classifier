@@ -27,3 +27,6 @@ local/
 
 # Editor / IDE settings
 .vscode/
+
+# Generated notebook outputs
+figures/
