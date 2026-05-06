@@ -1,5 +1,8 @@
 """Download dataset npz files from Google Drive.
 
+Google Drive link:
+    https://drive.google.com/drive/u/1/folders/1SVPtVIsWRM3wxmkdpDtjUM5TUBogI1Ta
+
 How to use:
     python scripts/download_data.py
 
@@ -28,9 +31,9 @@ DATASET_DIR = REPO_ROOT / "src" / "music_classifier" / "model" / "dataset"
 
 # (filename, destination_dir, file_id)
 FILES = [
-    ("train.npz", DATASET_DIR, "14ZA3lGqK5iC0XtSpOV8cAbFMkN0-gNgw"),
-    ("val.npz",   DATASET_DIR, "1XKUEMq8dG3SkaqpGz-cT_PBRBHHvy1l7"),
-    ("test.npz",  DATASET_DIR, "1Df6ZTXHo0ur-s6-hugrpcFTaLjFuycvR"),
+    ("train.npz", DATASET_DIR, "10nYHjQo2NTWXQdREoaxbtK8osqFgoKAV"),
+    ("val.npz",   DATASET_DIR, "1lcnGVGMhsU9SVAf-s22XjPRCwD1N0xBh"),
+    ("test.npz",  DATASET_DIR, "1VM-0KA1n-Jvy9cXkebbkjwrWacSaqRAW"),
 ]
 
 
