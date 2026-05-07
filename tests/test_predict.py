@@ -45,9 +45,33 @@ def test_format_prediction_rounds_to_three_decimals() -> None:
 
 
 def test_format_prediction_empty_input_raises_value_error() -> None:
-    predictions = np.array([], dtype=np.float32)
+    predictions = np.empty((0, len(GENRE_LABELS)), dtype=np.float32)
 
     with pytest.raises(ValueError, match="No predictions were provided"):
+        format_prediction(predictions)
+
+
+def test_format_prediction_non_2d_input_raises_value_error() -> None:
+    predictions = np.array([], dtype=np.float32)
+
+    with pytest.raises(ValueError, match="Predictions must be a 2-D array"):
+        format_prediction(predictions)
+
+
+def test_format_prediction_wrong_class_count_raises_value_error() -> None:
+    predictions = np.array([[0.5, 0.5]], dtype=np.float32)
+
+    with pytest.raises(ValueError, match="Model output shape does not match"):
+        format_prediction(predictions)
+
+
+def test_format_prediction_out_of_range_confidence_raises_value_error() -> None:
+    predictions = np.array(
+        [[1.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]],
+        dtype=np.float32,
+    )
+
+    with pytest.raises(ValueError, match="Prediction confidences"):
         format_prediction(predictions)
 
 
