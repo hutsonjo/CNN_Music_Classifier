@@ -38,12 +38,11 @@ def test_valid_audio_file_raises_for_directory(tmp_path: Path) -> None:
 
 
 def test_main_success_prints_predictions(mocker, capsys) -> None:
-    fake_args = argparse.Namespace(audio_file=Path("song.wav"))
+    fake_args = argparse.Namespace(audio_file=Path("song.wav"), top_n=2)
     fake_model = mocker.Mock()
     fake_results = [
         ("rock", 0.721),
         ("metal", 0.201),
-        ("jazz", 0.050),
     ]
 
     mocker.patch(
@@ -59,18 +58,64 @@ def test_main_success_prints_predictions(mocker, capsys) -> None:
         return_value=fake_results,
     )
 
-    main()
+    with pytest.raises(SystemExit) as exc_info:
+        main()
 
+    assert exc_info.value.code == 0
     load_model_mock.assert_called_once_with()
-    classify_file_mock.assert_called_once_with(fake_model, fake_args.audio_file)
+    classify_file_mock.assert_called_once_with(
+        fake_model,
+        fake_args.audio_file,
+        fake_args.top_n,
+    )
+
+    captured = capsys.readouterr()
+    assert "Predictions:" in captured.out
+    assert "rock" in captured.out
+    assert "0.721" in captured.out
+    assert "metal" in captured.out
+    assert "0.201" in captured.out
+
+
+def test_main_success_passes_none_top_n(mocker, capsys) -> None:
+    fake_args = argparse.Namespace(audio_file=Path("song.wav"), top_n=None)
+    fake_model = mocker.Mock()
+    fake_results = [
+        ("rock", 0.721),
+        ("metal", 0.201),
+        ("jazz", 0.050),
+    ]
+
+    mocker.patch(
+        "music_classifier.cli.main.build_parser",
+        return_value=fake_args,
+    )
+    mocker.patch(
+        "music_classifier.cli.main.load_genre_model",
+        return_value=fake_model,
+    )
+    classify_file_mock = mocker.patch(
+        "music_classifier.cli.main.classify_file",
+        return_value=fake_results,
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        main()
+
+    assert exc_info.value.code == 0
+    classify_file_mock.assert_called_once_with(
+        fake_model,
+        fake_args.audio_file,
+        None,
+    )
 
     captured = capsys.readouterr()
     assert "rock" in captured.out
-    assert "0.721" in captured.out
+    assert "jazz" in captured.out
 
 
 def test_main_exits_with_code_1_when_model_load_fails(mocker, capsys) -> None:
-    fake_args = argparse.Namespace(audio_file=Path("song.wav"))
+    fake_args = argparse.Namespace(audio_file=Path("song.wav"), top_n=2)
 
     mocker.patch(
         "music_classifier.cli.main.build_parser",
@@ -91,7 +136,7 @@ def test_main_exits_with_code_1_when_model_load_fails(mocker, capsys) -> None:
 
 
 def test_main_exits_with_code_1_when_classification_fails(mocker, capsys) -> None:
-    fake_args = argparse.Namespace(audio_file=Path("song.wav"))
+    fake_args = argparse.Namespace(audio_file=Path("song.wav"), top_n=2)
     fake_model = mocker.Mock()
 
     mocker.patch(
