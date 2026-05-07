@@ -11,6 +11,9 @@ matplotlib>=3.10
 seaborn>=0.13
 pandas>=3.0
 
+# Data fetching
+gdown>=5.0
+
 # Dev / testing
 pytest>=7.0
 pytest-cov>=4.0
