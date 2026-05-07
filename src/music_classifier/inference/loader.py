@@ -4,8 +4,9 @@ This module is responsible for loading a trained Keras model from disk.
 The model file must exist and contain both architecture and weights.
 
 The returned model is ready for inference and can be used directly
-with preprocessed spectrogram inputs. The model is loaded with ``compile=False``
-to avoid requiring training-time configuration during inference.
+with preprocessed spectrogram inputs. The model is loaded with
+``compile=False`` to avoid requiring training-time configuration
+during inference.
 """
 
 from __future__ import annotations
@@ -19,6 +20,11 @@ from keras import Model
 def load_genre_model() -> Model:
     """Load the trained genre classification model from disk.
 
+    The model artifact is loaded from the configured project path and
+    returned ready for inference. The model is loaded with
+    ``compile=False`` so that training-time configuration is not required
+    during inference.
+
     Returns
     -------
     Model
@@ -26,20 +32,20 @@ def load_genre_model() -> Model:
 
     Raises
     ------
-    NotImplementedError
-        If the model artifact is not yet available.
     FileNotFoundError
         If the model file does not exist at the expected location.
     RuntimeError
         If the model fails to load.
     """
-    path = Path(__file__).resolve().parents[2] / "model" / "model.keras"
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "model"
+        / "models"
+        / "model.keras"
+    )
     if not path.exists():
-        raise NotImplementedError(
-            f"Model artifact not available yet: expected at {path}"
-        )
-        # raise FileNotFoundError(f"Model file not found: {path}")
-    
+        raise FileNotFoundError(f"Model file not found: {path}")
+
     try:
         return cast(Model, load_model(path, compile=False))
     except Exception as exc:

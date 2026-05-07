@@ -12,6 +12,9 @@ dependencies = [
     "soundfile>=0.12",
 ]
 
+[project.scripts]
+music_classifier = "music_classifier.cli.main:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",

@@ -27,7 +27,8 @@ from music_classifier.preprocessing import (
     preprocess_file,
     build_spectrogram_record
 )
-from music_classifier.inference.predict import predict_batch
+from .predict import predict_batch
+from .labels import GENRE_LABELS
 
 
 def build_batch(file_path: str | Path) -> SpectrogramRecord:
@@ -51,7 +52,10 @@ def build_batch(file_path: str | Path) -> SpectrogramRecord:
     audio_record = preprocess_file(path, preprocess_config)
 
     spectrogram_config = SpectrogramConfig()
-    spectrogram_record = build_spectrogram_record(audio_record, spectrogram_config)
+    spectrogram_record = build_spectrogram_record(
+        audio_record,
+        spectrogram_config
+    )
 
     return spectrogram_record
 
@@ -59,6 +63,7 @@ def build_batch(file_path: str | Path) -> SpectrogramRecord:
 def classify_file(
     model: Model,
     file_path: str | Path,
+    top_n: int | None = None,
 ) -> list[tuple[str, float]]:
     """Run model inference on a single audio file.
 
@@ -71,14 +76,35 @@ def classify_file(
         Trained Keras model used for inference.
     file_path:
         Path to the audio file.
+    top_n:
+        Optional number of top predictions to return. If ``None``,
+        all predictions are returned.
 
     Returns
     -------
     list[tuple[str, float]]
         Ranked list of (genre, probability) pairs, sorted from highest
         to lowest probability.
+
+    Raises
+    ------
+    ValueError
+        If ``top_n`` is less than 1 or exceeds the number of available
+        genre labels.
     """
     spectrogram_record = build_batch(file_path)
     predictions = predict_batch(model, spectrogram_record['spectrograms'])
-    
+
+    if top_n is None:
+        return predictions
+    if top_n < 1:
+        raise ValueError('top_n must be at least 1.')
+    if top_n > len(GENRE_LABELS):
+        raise ValueError(
+            f"top_n cannot exceed the number of genres, "
+            f"{len(GENRE_LABELS)}, got {top_n}"
+        )
+
+    predictions = predictions[:top_n]
+
     return predictions

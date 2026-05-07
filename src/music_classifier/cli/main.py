@@ -12,13 +12,24 @@ Flow
 4. Display ranked genre predictions.
 
 This module is intentionally thin: it does not implement inference logic.
-All heavy processing is delegated to the ``music_classifier.inference`` package.
+Processing is delegated to the ``music_classifier.inference`` package.
 """
 
 from __future__ import annotations
 
+import os
+
+# Suppress TensorFlow/Keras logging noise before related imports
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
 import argparse
 from pathlib import Path
+
+from absl import logging as absl_logging
+
+absl_logging.set_verbosity(absl_logging.ERROR)
+absl_logging.set_stderrthreshold("error")
 
 from music_classifier.inference import load_genre_model, classify_file
 
@@ -53,7 +64,12 @@ def build_parser() -> argparse.Namespace:
     Returns
     -------
     argparse.Namespace
-        Parsed arguments containing the path to the audio file.
+        Parsed command-line arguments containing:
+
+        - ``audio_file``:
+        Path to the input audio file.
+        - ``top_n``:
+        Optional number of top predictions to display.
     """
     parser = argparse.ArgumentParser(
         prog="GenreClassifier",
@@ -62,7 +78,12 @@ def build_parser() -> argparse.Namespace:
     parser.add_argument(
         "audio_file",
         type=valid_audio_file,
-        help="Path to the audio file."
+        help="Path to the audio file. Path may be relative to cwd or absolute."
+    )
+    parser.add_argument(
+        "--top-n",
+        type=int,
+        help="Number of prediction results to be shown."
     )
     return parser.parse_args()
 
@@ -71,18 +92,19 @@ def main() -> None:
     """Entry point for CLI execution.
 
     Loads the trained model, runs inference on the provided audio file,
-    and prints the resulting predictions.
+    and prints the resulting top n predictions.
     """
     args = build_parser()
     audio_file = args.audio_file
 
     try:
         model = load_genre_model()
-        results = classify_file(model, audio_file)
+        results = classify_file(model, audio_file, args.top_n)
+
         print("\nPredictions:")
         for label, score in results:
             print(f"{label:10} {score:.3f}")
-        SystemExit(0)
+        raise SystemExit(0)
 
     except Exception as exc:
         print(f"Error: {exc}")
