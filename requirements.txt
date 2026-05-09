@@ -9,6 +9,7 @@ tensorflow>=2.15
 # Visualizations
 matplotlib>=3.10
 seaborn>=0.13
+pandas>=3.0
 
 # Data fetching
 gdown>=5.0
