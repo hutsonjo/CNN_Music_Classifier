@@ -15,8 +15,8 @@ def create_app(
 ) -> Flask:
     """Create and configure the Flask application.
 
-    Initializes the Flask backend, configures CORS support for
-    frontend communication, and registers API routes.
+    Initializes the Flask backend, configures CORS support for frontend
+    communication, loads the model, and registers API routes.
 
     Returns
     -------
