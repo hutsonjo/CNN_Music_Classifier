@@ -20,13 +20,13 @@ from .labels import GENRE_LABELS
 def validate_prediction(predictions: np.ndarray) -> None:
     """Validate raw model prediction output.
 
-    Ensures that prediction arrays returned by the model conform to the
+    Ensures that raw logit arrays returned by the model conform to the
     expected inference contract before aggregation and formatting.
 
     Validation checks include:
     1. Predictions must be a non-empty 2-D array.
     2. The class dimension must match ``GENRE_LABELS``.
-    3. All confidence values must be within the range [0, 1].
+    3. All logit values must be finite.
 
     Parameters
     ----------
@@ -38,7 +38,7 @@ def validate_prediction(predictions: np.ndarray) -> None:
     ------
     ValueError
         If predictions are empty, not 2-D, contain an unexpected number
-        of classes, or include confidence values outside the range [0, 1].
+        of classes, or include infinite logit values.
     """
     if predictions.ndim != 2:
         raise ValueError(
@@ -53,29 +53,30 @@ def validate_prediction(predictions: np.ndarray) -> None:
         raise ValueError(
             "Model output shape does not match inference engine expectations."
         )
-
-    if not np.all((predictions >= 0.0) & (predictions <= 1.0)):
-        raise ValueError("Prediction confidences must be between 0 and 1.")
+    
+    if not np.all(np.isfinite(predictions)):
+        raise ValueError("Predictions contain NaN or infinite values.")
 
 
 def format_prediction(predictions: np.ndarray) -> list[tuple[str, float]]:
     """Aggregate and format model predictions into ranked genre scores.
 
     This function validates raw model prediction output, aggregates
-    segment-level predictions into a single probability distribution,
-    and formats the results into ranked genre scores.
+    segment-level logits into a single prediction vector, applies softmax
+    normalization, and formats the results into ranked genre scores.
 
-    Segment predictions are combined by computing the mean probability
-    across all segments. Each probability is then paired with its
-    corresponding genre label, sorted in descending order, and rounded
-    to three decimal places for readability.
+    Segment predictions are combined by computing the mean logit value
+    across all segments. Softmax is then applied to the aggregated logits
+    to produce a probability distribution over all genres. Each probability
+    is paired with its corresponding genre label, sorted in descending
+    order, and rounded to three decimal places for readability.
 
     Parameters
     ----------
     predictions:
-        2-D array of shape (n_segments, n_classes), where each row contains
-        class probabilities for one audio segment. ``n_classes`` must match
-        the length of ``GENRE_LABELS``.
+        2-D array of shape ``(n_segments, n_classes)``, where each row
+        contains raw class logits for one audio segment. ``n_classes``
+        must match the length of ``GENRE_LABELS``.
 
     Returns
     -------
@@ -87,12 +88,16 @@ def format_prediction(predictions: np.ndarray) -> list[tuple[str, float]]:
     ------
     ValueError
         If predictions are empty, not 2-D, contain an unexpected number
-        of classes, or include confidence values outside the range [0, 1].
+        of classes, or include infinite logit values.
     """
     validate_prediction(predictions)
-    aggregate = np.mean(predictions, axis=0)
+    aggregate_logits = np.mean(predictions, axis=0)
+
+    exp_logits = np.exp(aggregate_logits - np.max(aggregate_logits))
+    probabilities = exp_logits / np.sum(exp_logits)
+
     results = sorted(
-        zip(GENRE_LABELS, aggregate, strict=False),
+        zip(GENRE_LABELS, probabilities, strict=False),
         key=lambda pair: pair[1],
         reverse=True
     )
