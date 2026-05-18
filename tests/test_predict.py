@@ -12,11 +12,11 @@ from music_classifier.inference.predict import format_prediction, predict_batch
 # ---------------------------------------------------------------------------
 
 
-def test_format_prediction_aggregates_and_sorts_descending() -> None:
+def test_format_prediction_averages_logits_applies_softmax_and_sorts_descending() -> None:
     predictions = np.array(
         [
-            [0.10, 0.60, 0.30, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
-            [0.20, 0.40, 0.40, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+            [0.0, 2.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 4.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         ],
         dtype=np.float32,
     )
@@ -24,24 +24,25 @@ def test_format_prediction_aggregates_and_sorts_descending() -> None:
     results = format_prediction(predictions)
 
     assert len(results) == len(GENRE_LABELS)
-    assert results[0] == ("classical", 0.5)
-    assert results[1] == ("country", 0.35)
-    assert results[2] == ("blues", 0.15)
+    assert results[0][0] == "classical"
+    assert results[1][0] == "country"
+    assert results[2][0] == "blues"
 
 
-def test_format_prediction_rounds_to_three_decimals() -> None:
+def test_format_prediction_returns_softmax_probabilities() -> None:
     predictions = np.array(
         [
-            [0.1234, 0.8766, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [0.1234, 0.8766, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 2.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 4.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         ],
         dtype=np.float32,
     )
 
     results = format_prediction(predictions)
+    scores = [score for _, score in results]
 
-    assert results[0] == ("classical", 0.877)
-    assert results[1] == ("blues", 0.123)
+    assert all(0.0 <= score <= 1.0 for score in scores)
+    assert np.isclose(sum(scores), 1.0, atol=0.01)
 
 
 def test_format_prediction_empty_input_raises_value_error() -> None:
@@ -62,16 +63,6 @@ def test_format_prediction_wrong_class_count_raises_value_error() -> None:
     predictions = np.array([[0.5, 0.5]], dtype=np.float32)
 
     with pytest.raises(ValueError, match="Model output shape does not match"):
-        format_prediction(predictions)
-
-
-def test_format_prediction_out_of_range_confidence_raises_value_error() -> None:
-    predictions = np.array(
-        [[1.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]],
-        dtype=np.float32,
-    )
-
-    with pytest.raises(ValueError, match="Prediction confidences"):
         format_prediction(predictions)
 
 
