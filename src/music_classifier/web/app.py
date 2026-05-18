@@ -1,12 +1,16 @@
 """Flask application factory and backend configuration."""
 
+import os
 from flask import Flask
 from flask_cors import CORS
 from keras import Model
+from dotenv import load_dotenv
 
 from music_classifier.inference import load_genre_model
 
 from .routes import bp
+
+load_dotenv()
 
 
 def create_app(
@@ -25,13 +29,15 @@ def create_app(
     """
     app = Flask(__name__)
 
+    app.config["MAX_CONTENT_LENGTH"] = 30 * 1024 * 1024
+
+    frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+
     CORS(
         app, 
         resources={
             r"/*": {
-                # Default Vite dev server origin.
-                # Will update if frontend configuration differs.
-                "origins": "http://localhost:5173"
+                "origins": frontend_origin
             }
         },
     )
