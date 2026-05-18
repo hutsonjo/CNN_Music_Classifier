@@ -13,6 +13,9 @@ __pycache__/
 venv/
 env/
 
+# Environment configuration
+.env
+
 # Build / packaging artifacts
 build/
 dist/
