@@ -98,6 +98,8 @@ def load_genre_model() -> Model:
         raise FileNotFoundError(f"Model file not found: {path}")
 
     try:
-        return cast(Model, load_model(path, compile=False))
+        return cast(Model, load_model(path, 
+                                      compile=False,
+                                      custom_objects={"SpecAugment": SpecAugment}))
     except Exception as exc:
         raise RuntimeError(f"Failed to load model from {path}: {exc}") from exc
