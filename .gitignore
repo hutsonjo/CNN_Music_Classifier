@@ -30,3 +30,7 @@ local/
 
 # Generated notebook outputs
 figures/
+
+# Frontend (npm)
+node_modules/
+frontend/dist/
