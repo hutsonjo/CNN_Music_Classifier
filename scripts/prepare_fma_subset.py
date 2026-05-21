@@ -53,6 +53,10 @@ from pathlib import Path
 # are intentionally excluded — no reasonable GTZAN equivalent exists.
 CORRUPTED_FILES: frozenset[str] = frozenset({
     "098565.mp3",
+    "099134.mp3",
+    "098567.mp3",
+    "098569.mp3",
+    "108925.mp3",
 })
 
 FMA_TO_GTZAN: dict[str, str] = {
