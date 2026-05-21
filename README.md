@@ -134,6 +134,79 @@ This checks only for fatal errors (syntax errors and undefined names). The
 `.flake8` config file in the repo root ensures `.venv` and build artifacts are
 excluded automatically. Clean output with exit code 0 means no issues found.
 
+## Web app (frontend + backend)
+
+This projects uses a React frontend that uploads a file to a Flask backend, which runs inference and returns ranked genre predictions. The frontend lives in `frontend/` and the backend lives in `src/music_classifier/web/`.
+
+The two run as separate servers during development with Flask on port 5000 and the Vite dev server on port 5173. Vite proxies API requests to Flask, so the browser only talks to 5173 and CORS is handled automatically.
+
+### 1. Install Node.js
+
+The frotnend uses npm, which comes bundled wth Node.js. Install Node 18 or newer from [nodejs.org](https://nodejs.org) or via `nvm` and then verfy:
+
+```bash
+node --version # should print v18 or higher
+```
+
+### 2. Install frontend dependecies
+
+The React app manages its dependencies separately from the Python project.
+
+```bash
+cd frontend
+npm install
+cd ..
+```
+### 3. Start the backend
+
+The backend exposes the model over HTTP. From the repo root, with your virtual environment active, run the command:
+
+```bash
+flask --app src/music_classifier/web/app.py run
+```
+
+This serves on `http://localhost:5000`. It loads the model at startup, so the model artifact must be present.
+
+For using the UI without a model, a stub backend that returns fake predictions is available for frontend work that doesn't rely on real inference:
+
+```bash
+python scripts/dev_backend_stub.py
+```
+
+### 4. Start the frontend
+
+In a second terminal:
+
+```bash
+cd frontend
+npm run dev
+```
+
+Open the URL it generates (default http://localhost:5173). Upload an audio file (`.wav`, `.mp3`, `.au`, `.ogg`, `.flac`, or `.m4a`) and the predicted genres will appear as ranked confidence bars.
+
+### Running frontend tests
+
+```bash
+cd frontend
+npm test
+```
+
+This is separate from the Python `pytest` suite. The frontend tests run with Vitest and live in `frontend/src/test/`.
+
+### Production build
+
+```bash
+cd frontend
+npm run build
+```
+
+Outputs static files to `frontend/dist/`, which can be served by any static host or by Flask directly
+
+> **macOS note:** port 5000 is used by AirPlay Receiver.
+> This can intercept requests to the backend and return `403 Forbidden`.
+> If the backend won't bind or upoads fail with 403, disable AirPlay Receiver
+> in System Settings -> General -> AirDrop & Handoff. 
+
 ## Pipeline data flow
 
 ```
