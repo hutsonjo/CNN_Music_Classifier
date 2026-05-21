@@ -118,6 +118,25 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
+### 6. Download training data
+
+Raw audio files are stored in S3 and not tracked in git. After configuring the AWS CLI (see below), run:
+
+```bash
+python scripts/download_training_data.py
+```
+
+Files land in `training_data/` at the repo root.
+
+**AWS CLI setup (one-time per machine):**
+
+```bash
+brew install awscli
+aws configure   # enter the access key, secret key, region: us-east-1, output: json
+```
+
+Ask Colin for IAM credentials scoped to the `cnn-music-classifier-data` bucket.
+
 ## Running tests
 
 ```bash

@@ -51,6 +51,14 @@ from pathlib import Path
 # Keys are FMA `genre_top` values; values are GTZAN directory names.
 # FMA genres absent from this dict (Experimental, International, Instrumental)
 # are intentionally excluded — no reasonable GTZAN equivalent exists.
+CORRUPTED_FILES: frozenset[str] = frozenset({
+    "098565.mp3",
+    "099134.mp3",
+    "098567.mp3",
+    "098569.mp3",
+    "108925.mp3",
+})
+
 FMA_TO_GTZAN: dict[str, str] = {
     "Hip-Hop":    "hiphop",   # strong match
     "Pop":        "pop",      # strong match
@@ -164,6 +172,8 @@ def main() -> int:
             continue
         audio_path = fma_audio_path(fma_root, int(track_id))
         if not audio_path.exists():
+            continue
+        if audio_path.name in CORRUPTED_FILES:
             continue
         gtzan_genre = FMA_TO_GTZAN[fma_genre]
         candidates[gtzan_genre].append(int(track_id))
