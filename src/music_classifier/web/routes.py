@@ -92,7 +92,7 @@ def predict() -> ResponseReturnValue:
                 "predictions": [
                     {
                         "genre": genre,
-                        "confidence": confidence,
+                        "confidence": float(confidence),
                     }
                     for genre, confidence in predictions
                 ]
