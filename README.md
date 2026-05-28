@@ -326,6 +326,7 @@ src/
       loader.py        # Model loader
       pipeline.py      # Coordinates preprocessing and prediction modules
       predict.py       # Inferences model and formats results
+      spec.py          # Spec Augment part of model needed for loading
     preprocessing/
       config.py        # PreprocessConfig + SpectrogramConfig dataclasses
       io.py            # File discovery, label parsing, librosa loading
@@ -335,6 +336,30 @@ src/
       pipeline.py      # Orchestrates both stages; AudioRecord + SpectrogramRecord
       splitter.py      # Stratified file-level train/val/test split
       storage.py       # save_dataset / load_dataset (.npz format)
+    model/ 
+      dataset/
+        generate.py    # Create Datasets Notebook
+      imgs/ 
+        nn.svg         # Diagram of model Architecture
+        spectrogram    # Example for read me
+      logs/
+        cnn3_metrics   # Json log file
+        ...         
+        cnn25_metrics  # Json log file 
+      model/
+        versions/
+          best_model_v1 
+          ...
+          best_model_v25
+        model.keras    # Final model weights and architecture for inference
+      progress_reports/
+        progress_report_1
+        progress_report_2_viseval
+        progress_report_2
+        progress_report_3_training
+      training/ 
+        Training.ipynb # Model Training file 
+      readme.MD        # Model readme
     web/
       app.py           # Flask entry point
       routes.py        # API endpoints
