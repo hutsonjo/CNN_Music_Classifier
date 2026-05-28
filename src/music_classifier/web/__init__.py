@@ -13,3 +13,11 @@ routes
 The backend is intentionally thin and delegates all inference logic to
 the ``music_classifier.inference`` package.
 """
+
+from .app import create_app
+from .routes import predict
+
+__all__ = [
+    "create_app",
+    "predict"
+]
