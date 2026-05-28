@@ -161,13 +161,13 @@ The two run as separate servers during development with Flask on port 5000 and t
 
 ### 1. Install Node.js
 
-The frotnend uses npm, which comes bundled wth Node.js. Install Node 18 or newer from [nodejs.org](https://nodejs.org) or via `nvm` and then verfy:
+The frontend uses npm, which comes bundled with Node.js. Install Node 18 or newer from [nodejs.org](https://nodejs.org) or via `nvm` and then verify:
 
 ```bash
 node --version # should print v18 or higher
 ```
 
-### 2. Install frontend dependecies
+### 2. Install frontend dependencies
 
 The React app manages its dependencies separately from the Python project.
 
@@ -223,8 +223,34 @@ Outputs static files to `frontend/dist/`, which can be served by any static host
 
 > **macOS note:** port 5000 is used by AirPlay Receiver.
 > This can intercept requests to the backend and return `403 Forbidden`.
-> If the backend won't bind or upoads fail with 403, disable AirPlay Receiver
-> in System Settings -> General -> AirDrop & Handoff. 
+> If the backend won't bind or uploads fail with 403, disable AirPlay Receiver
+> in System Settings -> General -> AirDrop & Handoff.
+
+## CLI Inference
+
+In addition to web app deployment, this project can be used as CLI tool.
+
+While in the project root, run genre classification directly from the terminal:
+
+```bash
+music_classifier samples/sample.mp3 --top-n 3
+```
+
+Example output:
+
+```text
+Predictions:
+rock        0.721
+metal       0.201
+jazz        0.050
+```
+
+Arguments:
+
+| Argument     | Description                                  |
+|--------------|----------------------------------------------|
+| `audio_file` | Path to the input audio file                 |
+| `--top-n`    | Optional number of top predictions to return |
 
 ## Pipeline data flow
 
@@ -259,14 +285,14 @@ python scripts/run_preprocess_smoke.py --dataset-root training_data/gtzan_datase
 
 Options:
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--dataset-root` | `training_data/gtzan_dataset` | Root of the GTZAN-style dataset |
-| `--target-sr` | `22050` | Target sample rate (Hz) |
-| `--segment-seconds` | `3.0` | Duration of each segment |
-| `--hop-seconds` | `None` (non-overlapping) | Stride between segments |
-| `--limit-files` | `None` | Stop after N files (quick check) |
-| `--pad-short` | off | Zero-pad short tail segments |
+| Flag                | Default                       | Description                      |
+|---------------------|-------------------------------|----------------------------------|
+| `--dataset-root`    | `training_data/gtzan_dataset` | Root of the GTZAN-style dataset  |
+| `--target-sr`       | `22050`                       | Target sample rate (Hz)          |
+| `--segment-seconds` | `3.0`                         | Duration of each segment         |
+| `--hop-seconds`     | `None` (non-overlapping)      | Stride between segments          |
+| `--limit-files`     | `None`                        | Stop after N files (quick check) |
+| `--pad-short`       | off                           | Zero-pad short tail segments     |
 
 Example with overlapping windows and a file limit:
 
@@ -293,6 +319,13 @@ python scripts/run_preprocess_smoke.py `
 ```
 src/
   music_classifier/
+    cli/
+      main.py          # CLI user tool
+    inference/
+      labels.py        # List of genre categories
+      loader.py        # Model loader
+      pipeline.py      # Coordinates preprocessing and prediction modules
+      predict.py       # Inferences model and formats results
     preprocessing/
       config.py        # PreprocessConfig + SpectrogramConfig dataclasses
       io.py            # File discovery, label parsing, librosa loading
@@ -302,16 +335,22 @@ src/
       pipeline.py      # Orchestrates both stages; AudioRecord + SpectrogramRecord
       splitter.py      # Stratified file-level train/val/test split
       storage.py       # save_dataset / load_dataset (.npz format)
+    web/
+      app.py           # Flask entry point
+      routes.py        # API endpoints
 tests/
+  test_gtzan_integration.py  # integration tests against real GTZAN data
+  test_inference_pipleline.py
   test_io.py
+  test_main.py
+  test_pipeline_smoke.py
+  test_predict.py
   test_segment.py
   test_spectrogram.py
   test_splitter.py
   test_storage.py
-  test_pipeline_smoke.py
-  test_gtzan_integration.py  # integration tests against real GTZAN data
+  test_web_routes.py
 scripts/
   run_preprocess_smoke.py
-training_data/
-  gtzan_dataset/     # 10 genres × 100 .au files
+  rub_backend_smoke.py
 ```
