@@ -181,7 +181,7 @@ cd ..
 The backend exposes the model over HTTP. From the repo root, with your virtual environment active, run the command:
 
 ```bash
-flask --app src/music_classifier/web/app.py run
+flask --app "music_classifier.web.app:create_app" run
 ```
 
 This serves on `http://localhost:5000`. It loads the model at startup, so the model artifact must be present.
